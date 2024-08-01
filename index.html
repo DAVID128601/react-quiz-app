@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fats and Oils Quiz</title>
+    <title>Study Q&A Group</title>
     <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -112,22 +112,38 @@
             }
         ];
 
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         function Quiz() {
             const [currentQuestion, setCurrentQuestion] = React.useState(0);
             const [selectedAnswer, setSelectedAnswer] = React.useState("");
             const [score, setScore] = React.useState(0);
             const [showResult, setShowResult] = React.useState(false);
+            const [shuffledQuestions, setShuffledQuestions] = React.useState([]);
+
+            React.useEffect(() => {
+                setShuffledQuestions(questions.map(q => ({
+                    ...q,
+                    choices: shuffleArray([...q.choices])
+                })));
+            }, []);
 
             const handleAnswerSelect = (answer) => {
                 setSelectedAnswer(answer);
             };
 
             const handleNextQuestion = () => {
-                if (selectedAnswer === questions[currentQuestion].correctAnswer) {
+                if (selectedAnswer === shuffledQuestions[currentQuestion].correctAnswer) {
                     setScore(score + 1);
                 }
 
-                if (currentQuestion + 1 < questions.length) {
+                if (currentQuestion + 1 < shuffledQuestions.length) {
                     setCurrentQuestion(currentQuestion + 1);
                     setSelectedAnswer("");
                 } else {
@@ -140,16 +156,23 @@
                 setSelectedAnswer("");
                 setScore(0);
                 setShowResult(false);
+                setShuffledQuestions(questions.map(q => ({
+                    ...q,
+                    choices: shuffleArray([...q.choices])
+                })));
             };
 
             if (showResult) {
+                const percentage = Math.round((score / shuffledQuestions.length) * 100);
                 return (
                     <div className="quiz-container">
                         <div className="result">
                             <h2>Quiz Completed!</h2>
-                            <p>Your score: {score} out of {questions.length}</p>
-                            {score === questions.length ? (
-                                <p>Congratulations! Here's your reward: Recharge Card: 1234-5678-9101</p>
+                            <p>Your score: {score} out of {shuffledQuestions.length} ({percentage}%)</p>
+                            {score === shuffledQuestions.length ? (
+                                <p>Congratulations! Here's your reward: Recharge Card: 1234-5678-9101
+                                    Try to recharge it before others score and win!
+                                </p>
                             ) : (
                                 <p>Try again to get the recharge card number.</p>
                             )}
@@ -159,14 +182,18 @@
                 );
             }
 
+            if (shuffledQuestions.length === 0) {
+                return <div>Loading...</div>;
+            }
+
             return (
                 <div className="quiz-container">
                     <div className="progress-bar">
-                        <div className="progress" style={{width: `${((currentQuestion + 1) / questions.length) * 100}%`}}></div>
+                        <div className="progress" style={{width: `${((currentQuestion + 1) / shuffledQuestions.length) * 100}%`}}></div>
                     </div>
-                    <div className="question">{questions[currentQuestion].question}</div>
+                    <div className="question">{shuffledQuestions[currentQuestion].question}</div>
                     <div className="choices">
-                        {questions[currentQuestion].choices.map((choice, index) => (
+                        {shuffledQuestions[currentQuestion].choices.map((choice, index) => (
                             <div
                                 key={index}
                                 className={`choice ${selectedAnswer === choice ? 'selected' : ''}`}
@@ -181,7 +208,7 @@
                         onClick={handleNextQuestion}
                         disabled={!selectedAnswer}
                     >
-                        {currentQuestion + 1 === questions.length ? 'Finish' : 'Next'}
+                        {currentQuestion + 1 === shuffledQuestions.length ? 'Finish' : 'Next'}
                     </button>
                 </div>
             );
