@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Riddles Challenge</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+        }
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 90%;
+            max-width: 600px;
+            transition: all 0.3s ease;
+        }
+        .question {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+        }
+        .choices {
+            display: flex;
+            flex-direction: column;
+        }
+        .choice {
+            margin: 0.7rem 0;
+            padding: 0.8rem;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400;
+            text-align: center;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        .choice:hover {
+            background-color: rgba(76, 175, 80, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+        .choice.selected {
+            background-color: #4CAF50;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.5);
+        }
+        .next-btn {
+            margin-top: 1.5rem;
+            padding: 0.8rem 1.5rem;
+            background-color: #ffd700;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .next-btn:hover {
+            background-color: #ffec00;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5);
+        }
+        .next-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background-color: #ffd700;
+            transition: width 0.5s ease-in-out;
+        }
+        .result {
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.7rem 0;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .title {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #ffd700;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #ffd700;
+            animation: confetti 5s ease-in-out infinite;
+        }
+        @keyframes confetti {
+            0% {
+                transform: translateY(0) rotateZ(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotateZ(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const riddles = [
+            {
+                question: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?",
+                choices: ["An echo", "A whisper", "A thought", "A shadow"],
+                correctAnswer: "An echo"
+            },
+            {
+                question: "You measure my life in hours and I serve you by expiring. I'm quick when I'm thin and slow when I'm fat. The wind is my enemy. What am I?",
+                choices: ["A candle", "A clock", "A sundial", "An hourglass"],
+                correctAnswer: "A candle"
+            },
+            {
+                question: "I have cities, but no houses. I have mountains, but no trees. I have water, but no fish. What am I?",
+                choices: ["A map", "A globe", "A painting", "A dream"],
+                correctAnswer: "A map"
+            },
+            {
+                question: "What has keys, but no locks; space, but no room; you can enter, but not go in?",
+                choices: ["A keyboard", "A piano", "A computer", "A smartphone"],
+                correctAnswer: "A keyboard"
+            },
+            {
+                question: "I am not alive, but I grow; I don't have lungs, but I need air; I don't have a mouth, but water kills me. What am I?",
+                choices: ["Fire", "A plant", "A balloon", "A cloud"],
+                correctAnswer: "Fire"
+            },
+            {
+                question: "What is always in front of you but can't be seen?",
+                choices: ["The future", "Your nose", "Air", "Your shadow"],
+                correctAnswer: "The future"
+            },
+            {
+                question: "I have branches, but no fruit, trunk or leaves. What am I?",
+                choices: ["A bank", "A library", "A family tree", "A river"],
+                correctAnswer: "A bank"
+            },
+            {
+                question: "What can travel around the world while staying in a corner?",
+                choices: ["A stamp", "The internet", "A globe", "A map"],
+                correctAnswer: "A stamp"
+            },
+            {
+                question: "I am taken from a mine and shut up in a wooden case, from which I am never released, and yet I am used by everyone. What am I?",
+                choices: ["A pencil lead", "Coal", "Gold", "Diamond"],
+                correctAnswer: "A pencil lead"
+            },
+            {
+                question: "What has a head and a tail that are only made of digits?",
+                choices: ["A coin", "A snake", "A computer mouse", "A ruler"],
+                correctAnswer: "A coin"
+            }
+        ];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function Confetti() {
+            return (
+                <>
+                    {[...Array(50)].map((_, i) => (
+                        <div
+                            key={i}
+                            className="confetti"
+                            style={{
+                                left: `${Math.random() * 100}vw`,
+                                animationDuration: `${Math.random() * 3 + 2}s`,
+                                animationDelay: `${Math.random() * 2}s`,
+                            }}
+                        />
+                    ))}
+                </>
+            );
+        }
+
+        function Quiz() {
+            const [currentQuestion, setCurrentQuestion] = React.useState(0);
+            const [selectedAnswer, setSelectedAnswer] = React.useState("");
+            const [score, setScore] = React.useState(0);
+            const [showResult, setShowResult] = React.useState(false);
+            const [shuffledRiddles, setShuffledRiddles] = React.useState([]);
+            const [name, setName] = React.useState("");
+            const [phoneNumber, setPhoneNumber] = React.useState("");
+            const [showForm, setShowForm] = React.useState(false);
+            const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+            React.useEffect(() => {
+                setShuffledRiddles(riddles.map(r => ({
+                    ...r,
+                    choices: shuffleArray([...r.choices])
+                })));
+            }, []);
+
+            const handleAnswerSelect = (answer) => {
+                setSelectedAnswer(answer);
+            };
+
+            const handleNextQuestion = () => {
+                if (selectedAnswer === shuffledRiddles[currentQuestion].correctAnswer) {
+                    setScore(score + 1);
+                }
+
+                if (currentQuestion + 1 < shuffledRiddles.length) {
+                    setCurrentQuestion(currentQuestion + 1);
+                    setSelectedAnswer("");
+                } else {
+                    setShowResult(true);
+                    if (score + 1 === shuffledRiddles.length) {
+                        setShowForm(true);
+                    }
+                }
+            };
+
+            const restartQuiz = () => {
+                setCurrentQuestion(0);
+                setSelectedAnswer("");
+                setScore(0);
+                setShowResult(false);
+                setName("");
+                setPhoneNumber("");
+                setShowForm(false);
+                setShuffledRiddles(riddles.map(r => ({
+                    ...r,
+                    choices: shuffleArray([...r.choices])
+                })));
+            };
+
+            const handleSubmit = () => {
+                setIsSubmitting(true);
+                emailjs.send('service_jqohmpl', 'template_wcrqs54', {
+                    name: name,
+                    phone_number: phoneNumber,
+                    score: score
+                }, 'leB0Uh_067ngFXbZo')
+                .then((result) => {
+                    console.log('Email sent successfully:', result.text);
+                    setIsSubmitting(false);
+                    setShowForm(false);
+                    setShowThankYou(true);
+                }, (error) => {
+                    console.log('Failed to send email:', error.text);
+                    setIsSubmitting(false);
+                    alert('There was an error submitting your information. Please try again later.');
+                });
+            };
+
+            const [showThankYou, setShowThankYou] = React.useState(false);
+
+            if (showThankYou) {
+                return (
+                    <div className="quiz-container fade-in">
+                        <div className="result">
+                            <h2 className="title">Thank You!</h2>
+                            <p>Your information has been submitted. If you are the first to get 10/10, your reward will soon be sent.</p>
+                            <button className="next-btn" onClick={restartQuiz}>Try Again</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (showResult) {
+                const percentage = Math.round((score / shuffledRiddles.length) * 100);
+                return (
+                    <div className="quiz-container fade-in">
+                        <div className="result">
+                            <Confetti />
+                            <h2 className="title">Challenge Complete!</h2>
+                            <p>Your score: {score} out of {shuffledRiddles.length} ({percentage}%)</p>
+                            {showForm ? (
+                                <>
+                                    <p>Congratulations! You've conquered all riddles!</p>
+                                    <p>Claim your 1GB reward by entering your details:</p>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Your Name" 
+                                        value={name} 
+                                        onChange={(e) => setName(e.target.value)} 
+                                        required
+                                    />
+                                    <input 
+                                        type="tel" 
+                                        placeholder="Your Phone Number (optional)" 
+                                        value={phoneNumber} 
+                                        onChange={(e) => setPhoneNumber(e.target.value)} 
+                                    />
+                                    <button className="next-btn" onClick={handleSubmit} disabled={isSubmitting}>
+                                        {isSubmitting ? "Sending..." : "Claim Reward"}
+                                    </button>
+                                </>
+                            ) : (
+                                <p>Great effort! Can you solve all riddles and claim the 1GB reward?</p>
+                            )}
+                            
+                        </div>
+                    </div>
+                );
+            }
+
+            if (shuffledRiddles.length === 0) {
+                return <div>Loading the challenge...</div>;
+            }
+
+            return (
+                <div className="quiz-container fade-in">
+                    <h1 className="title">Ultimate Riddles Challenge</h1>
+                    <div className="progress-bar">
+                        <div className="progress" style={{width: `${((currentQuestion + 1) / shuffledRiddles.length) * 100}%`}}></div>
+                    </div>
+                    <div className="question">{shuffledRiddles[currentQuestion].question}</div>
+                    <div className="choices">
+                        {shuffledRiddles[currentQuestion].choices.map((choice, index) => (
+                            <div
+                                key={index}
+                                className={`choice ${selectedAnswer === choice ? 'selected' : ''}`}
+                                onClick={() => handleAnswerSelect(choice)}
+                            >
+                                {choice}
+                            </div>
+                        ))}
+                    </div>
+                    <button
+                        className="next-btn"
+                        onClick={handleNextQuestion}
+                        disabled={!selectedAnswer}
+                    >
+                        {currentQuestion + 1 === shuffledRiddles.length ? 'Finish' : 'Next'}
+                    </button>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<Quiz />, document.getElementById('root'));
+    </script>
+</body>
+</html>
