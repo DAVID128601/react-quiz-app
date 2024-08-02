@@ -343,7 +343,7 @@
                 return (
                     <div className="quiz-container fade-in">
                         <div className="result">
-                            <Confetti />
+                            {score === shuffledRiddles.length && <Confetti />}
                             <h2 className="title">Challenge Complete!</h2>
                             <p>Your score: {score} out of {shuffledRiddles.length} ({percentage}%)</p>
                             {showForm ? (
@@ -370,7 +370,7 @@
                             ) : (
                                 <p>Great effort! Can you solve all riddles and claim the 1GB reward?</p>
                             )}
-                            
+                            <button className="next-btn" onClick={restartQuiz}>Try Again</button>
                         </div>
                     </div>
                 );
